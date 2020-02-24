@@ -1,0 +1,54 @@
+#
+# This is a Shiny web application. You can run the application by clicking
+# the 'Run App' button above.
+#
+# Find out more about building applications with Shiny here:
+#
+#    http://shiny.rstudio.com/
+#
+
+library(shiny)
+
+ui <- fluidPage(
+    titlePanel("Shiny Text"),
+    sidebarLayout(
+        sidebarPanel(
+            selectInput(inputId = "dataset",
+                        label = "Choose a dataset:",
+                        choices = c("abalone","heart","human","Iris")),
+            numericInput(inputId = "obs",
+                         label = "Number of observations to view:",
+                         value = 10)
+        ),
+        mainPanel(
+            verbatimTextOutput("summary"),
+            tableOutput("view")
+        )
+    )
+)
+
+server <- function(input, output) {
+    abalone <- read.csv("abalone.csv",stringsAsFactors = FALSE)
+    heart <- read.csv("heart.csv",stringsAsFactors = FALSE)
+    human <- read.csv("human.csv",stringsAsFactors = FALSE)
+    Iris <- read.csv("Iris.csv",stringsAsFactors = FALSE)
+    datasetInput <- reactive({
+        switch(input$dataset,
+               "abalone"=abalone,
+               "heart"=heart,
+               "human"=human,
+               "Iris"=Iris
+        )
+    })
+    
+    output$summary <- renderPrint({
+        dataset <- datasetInput()
+        summary(dataset)
+    })
+    
+    output$view <- renderTable({
+        head(datasetInput(), n = input$obs)
+    })
+}
+
+shinyApp(ui=ui,server=server)
